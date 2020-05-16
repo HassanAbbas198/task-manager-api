@@ -38,13 +38,8 @@ exports.login = async (req, res, next) => {
 	}
 };
 
-exports.getUsers = async (req, res, next) => {
-	try {
-		const users = await User.find();
-		res.send(users);
-	} catch (error) {
-		res.status(400).send(error);
-	}
+exports.getProfile = async (req, res, next) => {
+	res.send(req.user);
 };
 
 exports.getUser = async (req, res, next) => {
@@ -99,5 +94,27 @@ exports.deleteUser = async (req, res, next) => {
 		res.send('User deleted successfully');
 	} catch (error) {
 		res.status(400).send(error);
+	}
+};
+
+exports.logout = async (req, res, next) => {
+	try {
+		req.user.tokens = req.user.tokens.filter((token) => {
+			return token.token !== req.token;
+		});
+		res.send('Logged out successfully');
+		await req.user.save();
+	} catch (error) {
+		res.status(500).send();
+	}
+};
+
+exports.logoutAll = async (req, res, next) => {
+	try {
+		req.user.tokens = [];
+		res.send('Logged out of all devices successfully');
+		await req.user.save();
+	} catch (error) {
+		res.status(500).send();
 	}
 };
