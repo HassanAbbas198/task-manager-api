@@ -3,6 +3,8 @@ const validator = require('validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+const Task = require('./task');
+
 const userSchema = new mongoose.Schema({
 	name: {
 		type: String,
@@ -51,6 +53,13 @@ const userSchema = new mongoose.Schema({
 	],
 });
 
+/* virtual property isnt an actual data stored in the DB, its a relationship between 2 entities, we dont actually change what we store on the User document */
+userSchema.virtual('myTasks', {
+	ref: 'Task',
+	localField: '_id',
+	foreignField: 'creator',
+});
+
 // hashing the password before storing it
 userSchema.pre('save', async function (next) {
 	if (this.isModified('password')) {
@@ -60,10 +69,16 @@ userSchema.pre('save', async function (next) {
 	next();
 });
 
+// Cascade delete tasks when User is deleted
+userSchema.pre('remove', async function (next) {
+	await Task.deleteMany({ creator: this._id });
+	next();
+});
+
 // generating a JWT
 userSchema.methods.generateAuthToken = async function () {
 	const user = this;
-	const token = jwt.sign({ _id: user._id.toString() }, 'thisisalongsecret');
+	const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_KEY);
 
 	user.tokens = user.tokens.concat({ token });
 	await user.save();

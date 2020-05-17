@@ -1,7 +1,7 @@
 const Task = require('../models/task');
 
 exports.createTask = async (req, res, next) => {
-	const task = new Task(req.body);
+	const task = new Task({ ...req.body, creator: req.user._id });
 	try {
 		await task.save();
 		res.status(201).send(task);
@@ -11,9 +11,12 @@ exports.createTask = async (req, res, next) => {
 };
 
 exports.getTasks = async (req, res, next) => {
+	// const creator = req.user._id;
+	const user = req.user;
 	try {
-		const tasks = await Task.find();
-		res.send(tasks);
+		await user.populate('myTasks').execPopulate();
+		// const tasks = await Task.find({ creator });
+		res.send(user.myTasks);
 	} catch (error) {
 		res.status(400).send(error);
 	}
@@ -21,17 +24,24 @@ exports.getTasks = async (req, res, next) => {
 
 exports.getTask = async (req, res, next) => {
 	const id = req.params.id;
+	const creator = req.user._id;
+
 	try {
-		const task = await Task.findById(id);
+		const task = await Task.findOne({ _id: id, creator });
+
 		if (!task) {
-			return res.status(404).send(error);
+			res.status(404).send(`Couldn't find a task`);
 		}
+
 		res.send(task);
-	} catch (error) {}
+	} catch (error) {
+		res.status(400).send();
+	}
 };
 
 exports.updateTask = async (req, res, next) => {
 	const id = req.params.id;
+	const creator = req.user._id;
 
 	const updates = Object.keys(req.body);
 	const allowedUpdates = ['description', 'completed'];
@@ -44,14 +54,15 @@ exports.updateTask = async (req, res, next) => {
 	}
 
 	try {
-		const task = await Task.findById(id);
+		const task = await Task.findOne({ _id: id, creator });
+
+		if (!task) {
+			res.status(404).send();
+		}
 
 		updates.forEach((update) => (task[update] = req.body[update]));
 		await task.save();
 
-		if (!task) {
-			return res.status(404).send();
-		}
 		res.send(task);
 	} catch (error) {
 		res.status(400).send(error);
@@ -60,11 +71,12 @@ exports.updateTask = async (req, res, next) => {
 
 exports.deleteTask = async (req, res, next) => {
 	const id = req.params.id;
+	const creator = req.user._id;
 
 	try {
-		const task = await Task.findByIdAndDelete(id);
+		const task = await Task.findOneAndDelete({ _id: id, creator });
 		if (!task) {
-			return res.status(404).send();
+			res.status(404).send(`Couldn't find task`);
 		}
 		res.send('Task deleted successfully');
 	} catch (error) {

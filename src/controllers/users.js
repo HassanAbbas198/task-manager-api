@@ -42,22 +42,7 @@ exports.getProfile = async (req, res, next) => {
 	res.send(req.user);
 };
 
-exports.getUser = async (req, res, next) => {
-	const id = req.params.id;
-	try {
-		const user = await User.findById(id);
-		if (!user) {
-			return res.status(404).send();
-		}
-		res.send(user);
-	} catch (error) {
-		res.status(400).send(error);
-	}
-};
-
 exports.updateUser = async (req, res, next) => {
-	const id = req.params.id;
-
 	const updates = Object.keys(req.body);
 	const allowedUpdates = ['name', 'email', 'password', 'age'];
 	const isValidOperation = updates.every((update) =>
@@ -69,14 +54,11 @@ exports.updateUser = async (req, res, next) => {
 	}
 
 	try {
-		const user = await User.findById(id);
+		const user = req.user;
 
 		updates.forEach((update) => (user[update] = req.body[update]));
 		await user.save();
 
-		if (!user) {
-			return res.status(404).send();
-		}
 		res.send(user);
 	} catch (error) {
 		res.status(400).send(error);
@@ -84,13 +66,8 @@ exports.updateUser = async (req, res, next) => {
 };
 
 exports.deleteUser = async (req, res, next) => {
-	const id = req.params.id;
-
 	try {
-		const user = await User.findByIdAndDelete(id);
-		if (!user) {
-			return res.status(404).send();
-		}
+		await req.user.remove();
 		res.send('User deleted successfully');
 	} catch (error) {
 		res.status(400).send(error);

@@ -11,11 +11,9 @@ router.post('/users/login', UserController.login);
 
 router.get('/users/me', isAuth, UserController.getProfile);
 
-router.get('/users/:id', isAuth, UserController.getUser);
+router.patch('/users/me', isAuth, UserController.updateUser);
 
-router.patch('/users/:id', isAuth, UserController.updateUser);
-
-router.delete('/users/:id', isAuth, UserController.deleteUser);
+router.delete('/users/me', isAuth, UserController.deleteUser);
 
 router.post('/users/logout', isAuth, UserController.logout);
 
