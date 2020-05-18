@@ -11,10 +11,41 @@ exports.createTask = async (req, res, next) => {
 };
 
 exports.getTasks = async (req, res, next) => {
+	const isCompleted = req.query.completed;
+
+	const limit = +req.query.limit;
+	const skip = +req.query.skip;
+
+	const match = {};
+	const sort = {
+		createdAt: -1,
+	};
+
+	if (req.query.sortBy) {
+		const parts = req.query.sortBy.split(':');
+
+		// setting a property on the sort object
+		sort[parts[0]] = parts[1] === 'desc' ? -1 : 1;
+	}
+
+	if (isCompleted) {
+		// setting a property on the match object, match = {completed:true}
+		match.completed = isCompleted === 'true';
+	}
 	// const creator = req.user._id;
 	const user = req.user;
 	try {
-		await user.populate('myTasks').execPopulate();
+		await user
+			.populate({
+				path: 'myTasks',
+				match: match,
+				options: {
+					limit,
+					skip,
+					sort: sort,
+				},
+			})
+			.execPopulate();
 		// const tasks = await Task.find({ creator });
 		res.send(user.myTasks);
 	} catch (error) {

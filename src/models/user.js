@@ -5,53 +5,56 @@ const jwt = require('jsonwebtoken');
 
 const Task = require('./task');
 
-const userSchema = new mongoose.Schema({
-	name: {
-		type: String,
-		required: true,
-		trim: true,
-	},
-	email: {
-		type: String,
-		unique: true,
-		required: true,
-		trim: true,
-		lowercase: true,
-		validate(value) {
-			if (!validator.isEmail(value)) {
-				throw new Error('Invalid Email address!');
-			}
+const userSchema = new mongoose.Schema(
+	{
+		name: {
+			type: String,
+			required: true,
+			trim: true,
 		},
-	},
-	password: {
-		type: String,
-		required: true,
-		minlength: 5,
-		trim: true,
-		validate(value) {
-			if (value.includes('password')) {
-				throw new Error('Password cannot contain "password"');
-			}
-		},
-	},
-	age: {
-		type: Number,
-		default: 0,
-		validate(value) {
-			if (value < 0) {
-				throw new Error('Age must be a postive number');
-			}
-		},
-	},
-	tokens: [
-		{
-			token: {
-				type: String,
-				required: true,
+		email: {
+			type: String,
+			unique: true,
+			required: true,
+			trim: true,
+			lowercase: true,
+			validate(value) {
+				if (!validator.isEmail(value)) {
+					throw new Error('Invalid Email address!');
+				}
 			},
 		},
-	],
-});
+		password: {
+			type: String,
+			required: true,
+			minlength: 5,
+			trim: true,
+			validate(value) {
+				if (value.includes('password')) {
+					throw new Error('Password cannot contain "password"');
+				}
+			},
+		},
+		age: {
+			type: Number,
+			default: 0,
+			validate(value) {
+				if (value < 0) {
+					throw new Error('Age must be a postive number');
+				}
+			},
+		},
+		tokens: [
+			{
+				token: {
+					type: String,
+					required: true,
+				},
+			},
+		],
+	},
+	{ timestamps: true }
+);
 
 /* virtual property isnt an actual data stored in the DB, its a relationship between 2 entities, we dont actually change what we store on the User document */
 userSchema.virtual('myTasks', {
