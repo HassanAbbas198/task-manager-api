@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+const sharp = require('sharp');
 
 const User = require('../models/user');
 
@@ -62,6 +63,38 @@ exports.updateUser = async (req, res, next) => {
 		res.send(user);
 	} catch (error) {
 		res.status(400).send(error);
+	}
+};
+
+exports.uploadImage = async (req, res, next) => {
+	const buffer = await sharp(req.file.buffer)
+		.resize({ width: 250, height: 250 })
+		.png()
+		.toBuffer();
+	req.user.image = buffer;
+	await req.user.save();
+	res.send();
+};
+
+exports.deleteImage = async (req, res, next) => {
+	req.user.image = undefined;
+	await req.user.save();
+	res.send();
+};
+
+exports.getImage = async (req, res, next) => {
+	const id = req.params.id;
+	try {
+		const user = await User.findById(id);
+
+		if (!user || !user.image) {
+			throw new Error();
+		}
+
+		res.set('Content-Type', 'image/png');
+		res.send(user.image);
+	} catch (error) {
+		res.status(404).send();
 	}
 };
 
