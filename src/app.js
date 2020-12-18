@@ -1,8 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+require('dotenv').config();
 require('./db/mongoose');
-
-const PORT = process.env.PORT || 3000;
 
 const tasksRoutes = require('./routes/tasks');
 const usersRoutes = require('./routes/users');
@@ -17,10 +16,7 @@ app.use(usersRoutes);
 app.use((error, req, res, next) => {
 	const status = error.statusCode || 500;
 	const message = error.message;
-
 	res.status(status).send({ error: message });
 });
 
-app.listen(PORT, () => {
-	console.log(`Server listening on port ${PORT}`);
-});
+module.exports = app;
