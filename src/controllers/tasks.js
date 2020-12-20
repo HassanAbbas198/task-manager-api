@@ -38,11 +38,11 @@ exports.getTasks = async (req, res, next) => {
 		await user
 			.populate({
 				path: 'myTasks',
-				match: match,
+				match,
 				options: {
 					limit,
 					skip,
-					sort: sort,
+					sort,
 				},
 			})
 			.execPopulate();
@@ -107,7 +107,7 @@ exports.deleteTask = async (req, res, next) => {
 	try {
 		const task = await Task.findOneAndDelete({ _id: id, creator });
 		if (!task) {
-			res.status(404).send(`Couldn't find task`);
+			return res.status(404).send(`Couldn't find task`);
 		}
 		res.send('Task deleted successfully');
 	} catch (error) {
